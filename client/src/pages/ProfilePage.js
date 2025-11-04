@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link} from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [csrfToken, setCsrfToken] = useState(''); // <-- 1. ADD NEW STATE
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,6 +22,7 @@ const ProfilePage = () => {
 
         const data = await res.json();
         setUser(data); 
+        setCsrfToken(data.csrfToken); // <-- 2. SAVE THE TOKEN FROM THE RESPONSE
         
       } catch (err) {
         console.error(err);
@@ -35,11 +37,15 @@ const ProfilePage = () => {
   }, [navigate]);
 
   const handleLogout = async () => {
-    // ... (logout logic is the same)
     try {
       const res = await fetch('http://localhost:5000/auth/logout', {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
+        // --- 3. ADD THE CSRF TOKEN AS A HEADER ---
+        headers: {
+          'CSRF-Token': csrfToken // Send the token in the 'CSRF-Token' header
+        }
+        // --- END NEW PART ---
       });
 
       if (res.ok) {

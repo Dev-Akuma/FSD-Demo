@@ -8,7 +8,8 @@ const passport = require('passport');
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const { protect, admin } = require('./middleware/authMiddleware'); // <-- 1. ADD THIS
-const User = require('./models/User'); // <-- 2. ADD THIS
+const User = require('./models/User');
+const csrf = require('csurf');
 require('./passportConfig');
 
 
@@ -24,6 +25,12 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser()); // Use cookie-parser
+// --- 2. ADD THESE LINES ---
+// Initialize csurf protection.
+// 'cookie: true' tells csurf to store its secret in an httpOnly cookie.
+const csrfProtection = csrf({ cookie: true });
+app.use(csrfProtection);
+// --- END NEW LINES ---
 app.use(passport.initialize()); // Initialize passport
 
 // --- MongoDB Connection ---
@@ -98,7 +105,8 @@ app.get('/api/user/me', protect, (req, res) => {
     id: req.user.id,
     email: req.user.email,
     name: req.user.name,
-    role: req.user.role
+    role: req.user.role,
+    csrfToken: req.csrfToken()
   });
 });
 
