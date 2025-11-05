@@ -1,6 +1,14 @@
 import React from 'react';
 // --- 1. Import generateState ---
 import { createPkceChallenge, generateState, generateNonce } from '../pkceHelper';
+// --- 1. Import MUI components ---
+import Button from '@mui/material/Button';
+import Container from '@mui/material/Container';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import GoogleIcon from '@mui/icons-material/Google'; // Google icon
+
 
 const LoginPage = () => {
   const handleGoogleLogin = async () => {
@@ -17,7 +25,7 @@ const LoginPage = () => {
       sessionStorage.setItem('oauth_nonce', nonce);
 
       // --- 4. Define Google OAuth 2.0 parameters ---
-      const GOOGLE_CLIENT_ID = '432021855969-2fpjhp4j51hto3lkeutbf580mdhn4pv0.apps.googleusercontent.com';
+      const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
       const REDIRECT_URI = 'http://localhost:3000/auth/callback';
       const SCOPE = 'profile email';
 
@@ -42,13 +50,52 @@ const LoginPage = () => {
     }
   };
 
+  // --- 2. Use MUI components for the UI ---
   return (
-    <div>
-      <h2>Login to Nimbus (PKCE Flow)</h2>
-      <button onClick={handleGoogleLogin}>
-        Continue with Google
-      </button>
-    </div>
+    <Container 
+      component="main" 
+      maxWidth="xs" // Sets a small, fixed width for the login box
+      sx={{ // 'sx' is how you add custom styles in MUI
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '80vh', // Center vertically
+      }}
+    >
+      <Paper 
+        elevation={3} // Adds a nice shadow
+        sx={{
+          padding: 4, // '4' means 4 * 8px = 32px
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          width: '100%',
+        }}
+      >
+        <Typography component="h1" variant="h5" sx={{ mb: 2 }}>
+          OAuth 2.0 Login
+        </Typography>
+        <Typography component="p" variant="body1">
+          Sign in to continue
+        </Typography>
+
+        <Box sx={{ mt: 3, width: '100%' }}>
+          <Button
+            fullWidth // Makes the button fill the width
+            variant="contained" // Gives it the solid blue background
+            startIcon={<GoogleIcon />} // Adds the icon
+            onClick={handleGoogleLogin}
+            sx={{
+              padding: '10px',
+              fontSize: '1rem',
+            }}
+          >
+            Continue with Google
+          </Button>
+        </Box>
+      </Paper>
+    </Container>
   );
 };
 

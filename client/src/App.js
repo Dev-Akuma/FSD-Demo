@@ -1,52 +1,67 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import './App.css';
+import { BrowserRouter, Routes, Route, Link as RouterLink } from 'react-router-dom';
 
-// Import our pages
+// --- 1. Import MUI Components ---
+import { AppBar, Toolbar, Typography, Button, Container, Box } from '@mui/material';
+import { useAuth } from './context/AuthContext'; // To conditionally show links
+
+// --- Import Pages & Components ---
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminPage from './pages/AdminPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
-
-// --- 1. Import the new component ---
-import ProtectedRoute from './components/ProtectedRoute'; 
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
+  const { accessToken } = useAuth(); // Check if user is logged in
+
   return (
     <BrowserRouter>
-      <div className="App">
-        <nav>
-          <ul>
-            <li><Link to="/">Home (Login)</Link></li>
-            <li><Link to="/profile">Profile</Link></li>
-            {/* We'll make this link smarter later */}
-          </ul>
-        </nav>
+      {/* --- 2. Add the MUI AppBar --- */}
+      <AppBar position="static">
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            <RouterLink to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+              OAuth 2.0
+            </RouterLink>
+          </Typography>
+          
+          {/* --- 3. Conditionally show links --- */}
+          {accessToken ? (
+            <>
+              <Button color="inherit" component={RouterLink} to="/profile">
+                Profile
+              </Button>
+              {/* We'll add the Admin link back in the ProfilePage */}
+            </>
+          ) : (
+            <Button color="inherit" component={RouterLink} to="/">
+              Login
+            </Button>
+          )}
+        </Toolbar>
+      </AppBar>
 
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<LoginPage />} />
-          <Route path="/auth/callback" element={<AuthCallbackPage />} />
+      {/* --- 4. Add a main content container --- */}
+      <Container component="main" sx={{ mt: 4, mb: 4 }}>
+        <Box>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LoginPage />} />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
-          {/* --- 2. Wrap your protected routes --- */}
-          <Route 
-            path="/profile" 
-            element={
-              <ProtectedRoute>
-                <ProfilePage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin" 
-            element={
-              <ProtectedRoute>
-                <AdminPage />
-              </ProtectedRoute>
-            } 
-          />
-        </Routes>
-      </div>
+            {/* Protected Routes */}
+            <Route 
+              path="/profile" 
+              element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} 
+            />
+            <Route 
+              path="/admin" 
+              element={<ProtectedRoute><AdminPage /></ProtectedRoute>} 
+            />
+          </Routes>
+        </Box>
+      </Container>
     </BrowserRouter>
   );
 }
