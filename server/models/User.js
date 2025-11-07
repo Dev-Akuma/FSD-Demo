@@ -10,15 +10,11 @@ const userSchema = new mongoose.Schema({
   name: {
     type: String
   },
-
-  // --- THIS IS THE NEW PART ---
   role: {
     type: String,
-    enum: ['user', 'admin'], // Restricts the value to 'user' or 'admin'
-    default: 'user'          // Automatically sets new users to 'user'
+    enum: ['user', 'admin'],
+    default: 'user'
   },
-  // --- END NEW PART ---
-
   providers: {
     googleId: {
       type: String,
@@ -26,6 +22,11 @@ const userSchema = new mongoose.Schema({
       unique: true
     },
     facebookId: {
+      type: String,
+      sparse: true,
+      unique: true
+    },
+    githubId: {
       type: String,
       sparse: true,
       unique: true

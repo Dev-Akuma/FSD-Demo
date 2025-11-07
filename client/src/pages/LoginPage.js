@@ -1,35 +1,33 @@
 import React from 'react';
-// --- 1. Import generateState ---
 import { createPkceChallenge, generateState, generateNonce } from '../pkceHelper';
+
 // --- 1. Import MUI components ---
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import GoogleIcon from '@mui/icons-material/Google'; // Google icon
-
+import GoogleIcon from '@mui/icons-material/Google';
+import GitHubIcon from '@mui/icons-material/GitHub'; // <-- 1. Import GitHub Icon
 
 const LoginPage = () => {
+  const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+  const GITHUB_CLIENT_ID = process.env.REACT_APP_GITHUB_CLIENT_ID;
+  const REDIRECT_URI = 'http://localhost:3000/auth/callback';
+
+  // --- 2. Google Login Handler (Unchanged) ---
   const handleGoogleLogin = async () => {
     try {
-      // --- 2. Generate both PKCE and state ---
       const { verifier, challenge } = await createPkceChallenge();
-      const state = generateState(); 
-      const nonce = generateNonce(); 
+      const state = generateState();
+      const nonce = generateNonce();
 
-      // --- 3. Save *both* to storage ---
-      // Use sessionStorage so it's cleared when the browser tab closes
       localStorage.setItem('pkce_code_verifier', verifier);
-      sessionStorage.setItem('oauth_state', state); 
+      sessionStorage.setItem('oauth_state', state);
       sessionStorage.setItem('oauth_nonce', nonce);
+      sessionStorage.setItem('oauth_provider', 'google'); // <-- Set provider
 
-      // --- 4. Define Google OAuth 2.0 parameters ---
-      const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
-      const REDIRECT_URI = 'http://localhost:3000/auth/callback';
       const SCOPE = 'profile email';
-
-      // --- 5. Manually build the authorization URL (add state) ---
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${GOOGLE_CLIENT_ID}` +
         `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
@@ -41,57 +39,72 @@ const LoginPage = () => {
         `&nonce=${nonce}` +
         `&access_type=offline` +
         `&prompt=consent`;
-
-      // --- 6. Redirect the user ---
       window.location.href = authUrl;
-
     } catch (err) {
       console.error('Error during Google login', err);
     }
   };
 
-  // --- 2. Use MUI components for the UI ---
+  // --- 3. New GitHub Login Handler ---
+  const handleGitHubLogin = async () => {
+    try {
+      const state = generateState();
+      sessionStorage.setItem('oauth_state', state);
+      sessionStorage.setItem('oauth_provider', 'github'); // <-- Set provider
+
+      // GitHub's flow is simpler
+      const SCOPE = 'read:user user:email';
+      const authUrl = `https://github.com/login/oauth/authorize?` +
+        `client_id=${GITHUB_CLIENT_ID}` +
+        `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+        `&scope=${encodeURIComponent(SCOPE)}` +
+        `&state=${state}`;
+      
+      window.location.href = authUrl;
+    } catch (err) {
+      console.error('Error during GitHub login', err);
+    }
+  };
+
+  // --- 4. Update JSX with new button ---
   return (
-    <Container 
-      component="main" 
-      maxWidth="xs" // Sets a small, fixed width for the login box
-      sx={{ // 'sx' is how you add custom styles in MUI
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '80vh', // Center vertically
-      }}
-    >
-      <Paper 
-        elevation={3} // Adds a nice shadow
-        sx={{
-          padding: 4, // '4' means 4 * 8px = 32px
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          width: '100%',
-        }}
-      >
+    <Container component="main" maxWidth="xs" sx={{}}>
+      <Paper elevation={3} sx={{}}>
         <Typography component="h1" variant="h5" sx={{ mb: 2 }}>
-          OAuth 2.0 Login
+          OAuth2.0 Login
         </Typography>
         <Typography component="p" variant="body1">
           Sign in to continue
         </Typography>
 
-        <Box sx={{ mt: 3, width: '100%' }}>
+        <Box sx={{ mt: 3, width: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {/* Google Button */}
           <Button
-            fullWidth // Makes the button fill the width
-            variant="contained" // Gives it the solid blue background
-            startIcon={<GoogleIcon />} // Adds the icon
+            fullWidth
+            variant="contained"
+            startIcon={<GoogleIcon />}
             onClick={handleGoogleLogin}
-            sx={{
-              padding: '10px',
-              fontSize: '1rem',
-            }}
+            sx={{ padding: '10px', fontSize: '1rem' }}
           >
             Continue with Google
+          </Button>
+
+          {/* GitHub Button */}
+          <Button
+            fullWidth
+            variant="contained"
+            startIcon={<GitHubIcon />}
+            onClick={handleGitHubLogin}
+            sx={{ 
+              padding: '10px', 
+              fontSize: '1rem', 
+              backgroundColor: '#333', // GitHub color
+              '&:hover': {
+                backgroundColor: '#555', // Darker hover
+              }
+            }}
+          >
+            Continue with GitHub
           </Button>
         </Box>
       </Paper>

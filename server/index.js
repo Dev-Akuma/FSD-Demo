@@ -65,6 +65,12 @@ const googleAuthValidation = [
   body('nonce').notEmpty().isString().withMessage('Nonce must be a non-empty string') // <-- ADD THIS
 ];
 
+// --- ADD THIS NEW VALIDATION ARRAY ---
+const githubAuthValidation = [
+  authLimiter, // Use the same rate limiter
+  body('code').notEmpty().isString().withMessage('Authorization code must be a non-empty string')
+];
+
 app.post('/auth/google', googleAuthValidation, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -157,6 +163,124 @@ app.post('/auth/google', googleAuthValidation, async (req, res) => {
   }
 });
 
+// ===================================
+// ===       GITHUB AUTH           ===
+// ===================================
+app.post('/auth/github', githubAuthValidation, async (req, res) => {
+  // 1. Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { code } = req.body;
+
+  try {
+    // --- 1. Exchange the code for an access token ---
+    const tokenResponse = await axios.post(
+      'https://github.com/login/oauth/access_token',
+      null, // No body
+      {
+        params: {
+          client_id: process.env.GITHUB_CLIENT_ID,
+          client_secret: process.env.GITHUB_CLIENT_SECRET,
+          code: code,
+        },
+        headers: {
+          'Accept': 'application/json' // GitHub requires this header
+        }
+      }
+    );
+
+    const { access_token } = tokenResponse.data;
+    if (!access_token) {
+      return res.status(500).json({ message: 'GitHub auth failed: No token received.' });
+    }
+
+    // --- 2. Get the user's profile from GitHub ---
+    const userResponse = await axios.get('https://api.github.com/user', {
+      headers: {
+        'Authorization': `Bearer ${access_token}`
+      }
+    });
+
+    const profile = userResponse.data;
+
+    // --- 3. CRITICAL: Check if email is public ---
+    if (!profile.email) {
+      // If email is private, we can't create an account.
+      // We must ask the user to make it public.
+      return res.status(400).json({ 
+        message: 'GitHub login failed: Your GitHub email is private. Please set a public email in your GitHub profile settings and try again.' 
+      });
+    }
+
+    // --- 4. Find or Create User ---
+    let user = await User.findOne({ 'providers.githubId': profile.id });
+
+    if (!user) {
+      // User not found by githubId. Let's check by email.
+      user = await User.findOne({ email: profile.email });
+
+      if (user) {
+        // User with this email already exists! Link the accounts.
+        user.providers.githubId = profile.id;
+        await user.save();
+      } else {
+        // No user found at all. Create a new one.
+        user = new User({
+          email: profile.email,
+          name: profile.name || profile.login, // Use name, fallback to login
+          providers: {
+            githubId: profile.id
+          }
+          // 'role' will be set to 'user' by default
+        });
+        await user.save();
+      }
+    }
+
+    // --- 5. Create our app's JWTs (Same as Google) ---
+    const userPayload = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role
+    };
+    
+    // Create the Access Token (15 minutes)
+    const accessToken = jwt.sign(
+      userPayload, 
+      process.env.JWT_ACCESS_SECRET, 
+      { expiresIn: process.env.JWT_ACCESS_EXPIRATION }
+    );
+
+    // Create the Refresh Token (7 days)
+    const refreshToken = jwt.sign(
+      userPayload,
+      process.env.JWT_REFRESH_SECRET, 
+      { expiresIn: process.env.JWT_REFRESH_EXPIRATION }
+    );
+
+    // Set the refresh token as an httpOnly cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: false, // Set to true in prod
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    // Send the access token in the JSON response
+    res.status(200).json({ 
+      message: 'Login successful',
+      accessToken: accessToken
+    });
+
+  } catch (err) {
+    console.error('Error during GitHub auth:', err.response ? err.response.data : err.message);
+    res.status(500).json({ message: 'Authentication failed.' });
+  }
+});
 
 // ===================================
 // ===   CSRF & PROTECTED ROUTES   ===
