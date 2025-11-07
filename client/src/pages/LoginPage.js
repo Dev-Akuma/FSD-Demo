@@ -8,7 +8,8 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import GoogleIcon from '@mui/icons-material/Google';
-import GitHubIcon from '@mui/icons-material/GitHub'; // <-- 1. Import GitHub Icon
+import GitHubIcon from '@mui/icons-material/GitHub';
+import FacebookIcon from '@mui/icons-material/Facebook'; // <-- 1. IMPORT FB ICON
 
 const LoginPage = () => {
   const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
@@ -45,14 +46,13 @@ const LoginPage = () => {
     }
   };
 
-  // --- 3. New GitHub Login Handler ---
+  // --- 3. GitHub Login Handler (Unchanged) ---
   const handleGitHubLogin = async () => {
     try {
       const state = generateState();
       sessionStorage.setItem('oauth_state', state);
       sessionStorage.setItem('oauth_provider', 'github'); // <-- Set provider
 
-      // GitHub's flow is simpler
       const SCOPE = 'read:user user:email';
       const authUrl = `https://github.com/login/oauth/authorize?` +
         `client_id=${GITHUB_CLIENT_ID}` +
@@ -66,14 +66,34 @@ const LoginPage = () => {
     }
   };
 
-  // --- 4. Update JSX with new button ---
+  // --- 4. Update JSX to match the screenshot ---
   return (
-    <Container component="main" maxWidth="xs" sx={{}}>
-      <Paper elevation={3} sx={{}}>
-        <Typography component="h1" variant="h5" sx={{ mb: 2 }}>
+    <Container 
+      component="main" 
+      maxWidth="xs" 
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'flex-start', // Aligns to the top
+        mt: 8, // Margin-top to push it down
+      }}
+    >
+      <Paper 
+        elevation={3} // The shadow effect
+        sx={{
+          padding: 4, // 32px padding
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center', // Center text and items
+          width: '100%',
+          borderRadius: 2, // Softer corners
+          backgroundColor: '#ffffff', // Explicitly white
+        }}
+      >
+        <Typography component="h1" variant="h5" sx={{ fontWeight: 600, color: '#000' }}>
           OAuth2.0 Login
         </Typography>
-        <Typography component="p" variant="body1">
+        <Typography component="p" variant="body1" color="text.secondary" sx={{ mt: 1 }}>
           Sign in to continue
         </Typography>
 
@@ -84,7 +104,12 @@ const LoginPage = () => {
             variant="contained"
             startIcon={<GoogleIcon />}
             onClick={handleGoogleLogin}
-            sx={{ padding: '10px', fontSize: '1rem' }}
+            sx={{
+              textTransform: 'uppercase', // Match screenshot
+              fontWeight: 600,
+              padding: '10px',
+              backgroundColor: '#1976D2', // MUI default blue
+            }}
           >
             Continue with Google
           </Button>
@@ -96,15 +121,36 @@ const LoginPage = () => {
             startIcon={<GitHubIcon />}
             onClick={handleGitHubLogin}
             sx={{ 
-              padding: '10px', 
-              fontSize: '1rem', 
-              backgroundColor: '#333', // GitHub color
+              textTransform: 'uppercase', // Match screenshot
+              fontWeight: 600,
+              padding: '10px',
+              backgroundColor: '#333', // GitHub black
+              color: '#fff',
               '&:hover': {
-                backgroundColor: '#555', // Darker hover
+                backgroundColor: '#555',
               }
             }}
           >
             Continue with GitHub
+          </Button>
+          
+          {/* 5. The "Sneaky Bastard" Button --- */}
+          <Button
+            fullWidth
+            variant="contained"
+            startIcon={<FacebookIcon />}
+            onClick={handleGoogleLogin} // <-- Notice: calls Google login!
+            sx={{
+              textTransform: 'uppercase', // Match screenshot
+              fontWeight: 600,
+              padding: '10px',
+              backgroundColor: '#1877F2', // Facebook blue
+              '&:hover': {
+                backgroundColor: '#166eeb',
+              }
+            }}
+          >
+            Continue with Facebook
           </Button>
         </Box>
       </Paper>

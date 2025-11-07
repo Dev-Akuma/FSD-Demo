@@ -1,0 +1,10 @@
+/* We're setting the background color for the entire app here.
+  This light blue-gray color (#f7f9fc) will make your 
+  white Paper components stand out, just like in your screenshot.
+*/
+body {
+  background-color: #f7f9fc;
+  min-height: 100vh;
+  margin: 0;
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
