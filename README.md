@@ -6,7 +6,7 @@ A production-grade authentication system built using the **MERN Stack (MongoDB, 
 
 ## Features Overview
 
-### ** 1. Google OAuth 2.0 with PKCE (Authorization Code Flow)**
+### **1. Google OAuth 2.0 with PKCE (Authorization Code Flow)**
 
 Implements the industry-standard PKCE flow for SPAs:
 
@@ -15,7 +15,7 @@ Implements the industry-standard PKCE flow for SPAs:
 * Nonce validation to prevent replay attacks
 * Manual implementation of the PKCE steps for complete control
 
-### ** 2. JWT Authentication (Access + Refresh Tokens)**
+### **2. JWT Authentication (Access + Refresh Tokens)**
 
 **Access Token**
 
@@ -28,13 +28,13 @@ Implements the industry-standard PKCE flow for SPAs:
 * Stored in **httpOnly, secure cookies**
 * Never exposed to JavaScript
 
-### ** 3. Automatic Silent Token Refresh**
+### **3. Automatic Silent Token Refresh**
 
 * Axios interceptors detect expired access tokens
 * Transparently refresh using `/auth/refresh`
 * Retries failed requests without user interaction
 
-### ** 4. Advanced Security**
+### **4. Advanced Security**
 
 * CSRF Protection using `csurf`
 * Rate limiting using `express-rate-limit`
@@ -42,14 +42,14 @@ Implements the industry-standard PKCE flow for SPAs:
 * Secure cookie configuration
 * In-memory access-token storage
 
-### ** 5. Role-Based Access Control (RBAC)**
+### **5. Role-Based Access Control (RBAC)**
 
 * Default `user` role
 * `admin` role with privileged routes
 * Backend middleware for authorization
 * Frontend gating using protected components
 
-### ** 6. Production-Ready Server Design**
+### **6. Production-Ready Server Design**
 
 * Structured logging with `morgan`
 * Clean modular architecture
@@ -140,19 +140,19 @@ User = {
 
 ## Security Highlights
 
-### ✔ PKCE protects against authorization code interception
+### PKCE protects against authorization code interception
 
-### ✔ State protects against Login CSRF
+### State protects against Login CSRF
 
-### ✔ Nonce protects against replay attacks
+### Nonce protects against replay attacks
 
-### ✔ Refresh token is stored in httpOnly cookie (XSS-safe)
+### Refresh token is stored in httpOnly cookie (XSS-safe)
 
-### ✔ Access token never touches localStorage or sessionStorage
+### Access token never touches localStorage or sessionStorage
 
-### ✔ CSRF protection guards state-changing routes
+### CSRF protection guards state-changing routes
 
-### ✔ Rate limiting blocks brute force and script abuse
+### Rate limiting blocks brute force and script abuse
 
 ---
 
